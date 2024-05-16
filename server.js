@@ -1,16 +1,17 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
+const cors = require('cors');
+
 const app = express();
+app.use(cors()); // Habilita o CORS para todas as origens
 const PORT = 3000;
 
 const db = new sqlite3.Database('banco-de-dados.db');
-
+  
 db.serialize(() => {
     db.run("CREATE TABLE IF NOT EXISTS tarefas (id INTEGER PRIMARY KEY, tarefa TEXT)");
 });
-
 app.use(express.json());
-
 app.post('/tarefas', (req, res) => {
     const { tarefa } = req.body;
     db.run("INSERT INTO tarefas (tarefa) VALUES (?)", [tarefa], function(err) {
@@ -22,6 +23,7 @@ app.post('/tarefas', (req, res) => {
 });
 
 app.get('/tarefas', (req, res) => {
+  
     db.all("SELECT * FROM tarefas", [], (err, rows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
@@ -29,7 +31,6 @@ app.get('/tarefas', (req, res) => {
         res.status(200).json(rows);
     });
 });
-
 app.get('/tarefas/:id', (req, res) => {
     const { id } = req.params;
     db.get("SELECT * FROM tarefas WHERE id = ?", [id], (err, row) => {
@@ -43,7 +44,6 @@ app.get('/tarefas/:id', (req, res) => {
         }
     });
 });
-
 app.put('/tarefas/:id', (req, res) => {
     const { id } = req.params;
     const { tarefa } = req.body;
@@ -58,7 +58,6 @@ app.put('/tarefas/:id', (req, res) => {
         }
     });
 });
-
 app.delete('/tarefas/:id', (req, res) => {
     const { id } = req.params;
     db.run("DELETE FROM tarefas WHERE id = ?", [id], function(err) {
@@ -72,7 +71,6 @@ app.delete('/tarefas/:id', (req, res) => {
         }
     });
 });
-
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta http://localhost:${PORT}`);
 });
